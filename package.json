@@ -1,5 +1,5 @@
 {
-  "name": "context-slicer",
+  "name": "@krishthesmart/context-slicer",
   "version": "1.0.0",
   "description": "Non-destructive context filtering for AI chats — never deletes chat messages, only filters what the AI sees.",
   "main": "src/core.js",
