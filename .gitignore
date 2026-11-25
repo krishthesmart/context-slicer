@@ -1,4 +1,5 @@
 .DS_Store
 .context-slicer-slices.json
 .env
+.mcpregistry_*
 node_modules/

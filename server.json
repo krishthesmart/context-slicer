@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.krishthesmart/context-slicer",
+  "description": "Non-destructive context filter for AI chats that sends only what the active task needs.",
+  "repository": {
+    "url": "https://github.com/krishthesmart/context-slicer",
+    "source": "github",
+    "id": "1471274372"
+  },
+  "version": "1.0.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@krishthesmart/context-slicer",
+      "version": "1.0.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "description": "Path to the local JSON file for storing slices (optional)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false,
+          "name": "CONTEXT_SLICER_DB"
+        }
+      ]
+    }
+  ]
+}
