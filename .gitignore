@@ -1,0 +1,4 @@
+.DS_Store
+.context-slicer-slices.json
+.env
+node_modules/

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ContextSlicer — Non-Destructive Context Filtering for AI Chats</title>
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --surface: #121722;
+      --surface-2: #182030;
+      --border: #253047;
+      --text: #e6edf7;
+      --muted: #93a4bd;
+      --accent: #38bdf8;
+      --accent-2: #818cf8;
+      --green: #34d399;
+      --red: #f87171;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--sans);
+      background: radial-gradient(circle at 20% 0%, #131c2e 0%, var(--bg) 55%);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1020px; margin: 0 auto; padding: 0 24px; }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 24px 0; border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-weight: 700; font-size: 1.15rem; letter-spacing: -0.02em;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .logo-badge {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid; place-items: center; color: #07101d; font-weight: 800; font-size: 0.9rem;
+    }
+    .nav-pills { display: flex; gap: 8px; }
+    .pill {
+      font-size: 0.78rem; font-weight: 600; padding: 5px 11px; border-radius: 999px;
+      background: var(--surface); border: 1px solid var(--border); color: var(--accent);
+      text-decoration: none;
+    }
+    .hero { padding: 64px 0 48px; text-align: center; }
+    .hero-tag {
+      display: inline-block; font-size: 0.8rem; font-weight: 600; color: var(--green);
+      background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.25);
+      padding: 4px 12px; border-radius: 999px; margin-bottom: 18px;
+    }
+    h1 {
+      font-size: clamp(2rem, 4.5vw, 3.2rem); line-height: 1.12; letter-spacing: -0.03em;
+      margin-bottom: 18px;
+    }
+    .gradient-text {
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero p {
+      max-width: 660px; margin: 0 auto 28px; color: var(--muted); font-size: 1.08rem;
+    }
+    .cta-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      padding: 11px 20px; border-radius: 9px; font-weight: 600; font-size: 0.92rem;
+      text-decoration: none; cursor: pointer; border: 1px solid var(--border); transition: 0.15s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #07101d; border-color: transparent;
+    }
+    .btn-secondary { background: var(--surface); color: var(--text); }
+    .btn:hover { transform: translateY(-1px); opacity: 0.94; }
+
+    .grid-3 {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px; margin: 28px 0 56px;
+    }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 22px;
+    }
+    .card-label {
+      display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--accent); margin-bottom: 8px;
+    }
+    .card h3 { font-size: 1.12rem; margin-bottom: 8px; }
+    .card p { color: var(--muted); font-size: 0.92rem; }
+
+    section { margin-bottom: 64px; }
+    .section-head { margin-bottom: 20px; }
+    .section-head h2 { font-size: 1.55rem; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .section-head p { color: var(--muted); font-size: 0.96rem; }
+
+    /* Before vs After Comparison */
+    .compare-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 24px;
+    }
+    .compare-controls {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+      gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .mode-switch { display: flex; gap: 8px; }
+    .mode-btn {
+      background: var(--surface-2); color: var(--muted); border: 1px solid var(--border);
+      padding: 7px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    }
+    .mode-btn.active { background: var(--accent); color: #07101d; border-color: var(--accent); }
+    .compare-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 18px;
+    }
+    .compare-col {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 18px;
+    }
+    .compare-col.after { border-color: rgba(52, 211, 153, 0.45); }
+    .col-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .badge-before { color: var(--red); font-weight: 700; font-size: 0.82rem; }
+    .badge-after { color: var(--green); font-weight: 700; font-size: 0.82rem; }
+    .token-num { font-family: var(--mono); font-size: 1.35rem; font-weight: 700; }
+    .bar-track {
+      height: 10px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin-bottom: 14px;
+    }
+    .bar-fill { height: 100%; border-radius: 999px; transition: width 0.25s ease; }
+    .bar-before { background: var(--red); width: 100%; }
+    .bar-after { background: var(--green); }
+    .payload-preview {
+      font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+      background: var(--surface); padding: 12px; border-radius: 8px; white-space: pre-wrap;
+    }
+
+    /* Interactive Setup Tabs */
+    .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+    .tab-btn {
+      background: var(--surface); color: var(--muted); border: 1px solid var(--border);
+      padding: 9px 18px; border-radius: 9px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+    }
+    .tab-btn.active {
+      background: var(--surface-2); color: var(--accent); border-color: var(--accent);
+    }
+    .tab-panel {
+      display: none; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px; position: relative;
+    }
+    .tab-panel.active { display: block; }
+    .code-wrap { position: relative; }
+    pre {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 16px; overflow-x: auto; font-family: var(--mono); font-size: 0.84rem;
+      color: #cfe0f5;
+    }
+    .copy-btn {
+      position: absolute; top: 10px; right: 10px; background: var(--surface-2);
+      color: var(--text); border: 1px solid var(--border); border-radius: 6px;
+      padding: 5px 10px; font-size: 0.75rem; cursor: pointer;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 28px 0 44px;
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      color: var(--muted); font-size: 0.86rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <span class="logo-badge">CS</span>
+        <span>ContextSlicer</span>
+      </div>
+      <nav class="nav-pills">
+        <a class="pill" href="#setup" onclick="selectTab('mcp')">MCP</a>
+        <a class="pill" href="#setup" onclick="selectTab('proxy')">Proxy</a>
+        <a class="pill" href="#setup" onclick="selectTab('sdk')">SDK</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <span class="hero-tag">Zero Dependencies · Non-Destructive · MIT Open Source</span>
+        <h1>Keep your full chat.<br /><span class="gradient-text">Slice what the AI sees.</span></h1>
+        <p>
+          ContextSlicer never deletes a single message from your chat history. It archives every raw turn,
+          compacts decisions into a live <code>[WORKING_MEMORY]</code> card, and drops brainstorm noise the moment you say <em>"build it"</em>.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#setup">Quick Setup</a>
+          <a class="btn btn-secondary" href="#comparison">See Token Savings</a>
+        </div>
+      </section>
+
+      <div class="grid-3">
+        <div class="card">
+          <span class="card-label">SDK</span>
+          <h3>Core Node.js Library</h3>
+          <p>Drop-in CommonJS class (<code>src/core.js</code>) with <code>this.archive</code>, <code>&lt;spec cat="..."&gt;</code> extraction, keyword recall, and auto execute mode.</p>
+        </div>
+        <div class="card">
+          <span class="card-label">Proxy</span>
+          <h3>Streaming OpenAI Proxy + Worker</h3>
+          <p>OpenAI-compatible SSE proxy (<code>src/proxy.js</code> &amp; <code>worker.js</code>) with <code>X-Context-Saved</code> headers, 100-session LRU cap, and optional <code>SLICER_KEY</code>.</p>
+        </div>
+        <div class="card">
+          <span class="card-label">MCP</span>
+          <h3>Stdio JSON-RPC 2.0 Server</h3>
+          <p>Zero-dependency MCP server (<code>src/mcp.js</code>) exposing <code>save_slice</code>, <code>get_slice</code>, and <code>list_slices</code> backed by local JSON.</p>
+        </div>
+      </div>
+
+      <section id="comparison">
+        <div class="section-head">
+          <h2>Before vs. After Token Comparison</h2>
+          <p>Toggle between ongoing brainstorming (Chat Mode) and build execution (Execute Mode) after a 24-turn session.</p>
+        </div>
+        <div class="compare-box">
+          <div class="compare-controls">
+            <div>
+              <strong id="scenario-title">Execute Mode ("build it")</strong>
+              <div style="color: var(--muted); font-size: 0.86rem;" id="scenario-sub">
+                Brainstorm window dropped — sends only [WORKING_MEMORY] + userMsg.
+              </div>
+            </div>
+            <div class="mode-switch">
+              <button class="mode-btn" id="btn-chat" onclick="setScenario('chat')">Chat Mode</button>
+              <button class="mode-btn active" id="btn-execute" onclick="setScenario('execute')">Execute Mode ("build it")</button>
+            </div>
+          </div>
+
+          <div class="compare-grid">
+            <div class="compare-col">
+              <div class="col-top">
+                <span class="badge-before">BEFORE (Raw Chat History)</span>
+                <span class="token-num" id="before-tokens">12,480 tok</span>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-before"></div></div>
+              <div class="payload-preview" id="before-preview">system + 24 raw brainstorm turns + dead-end ideas + repeated code snippets + userMsg</div>
+            </div>
+
+            <div class="compare-col after">
+              <div class="col-top">
+                <span class="badge-after" id="after-label">AFTER (96% Saved)</span>
+                <span class="token-num" id="after-tokens">460 tok</span>
+              </div>
+              <div class="bar-track"><div class="bar-fill bar-after" id="after-bar" style="width: 4%"></div></div>
+              <div class="payload-preview" id="after-preview">[WORKING_MEMORY]
+Goal: Zero-dep ContextSlicer
+Decisions: CommonJS | SSE passthrough | JSON store
+Constraints: 0 npm deps | Non-destructive archive
+Rejected: Deleting user chat history
+[/WORKING_MEMORY]
++ user: "build it"</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="setup">
+        <div class="section-head">
+          <h2>Setup in 30 Seconds</h2>
+          <p>Choose your integration: MCP, Proxy, or SDK.</p>
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="mcp" onclick="selectTab('mcp')">MCP</button>
+          <button class="tab-btn" data-tab="proxy" onclick="selectTab('proxy')">Proxy</button>
+          <button class="tab-btn" data-tab="sdk" onclick="selectTab('sdk')">SDK</button>
+        </div>
+
+        <div class="tab-panel active" id="tab-mcp">
+          <p style="color: var(--muted); margin-bottom: 12px; font-size: 0.92rem;">
+            Add ContextSlicer to any MCP client (stdio JSON-RPC 2.0) to persist and recall <code>save_slice</code>, <code>get_slice</code>, and <code>list_slices</code>:
+          </p>
+          <div class="code-wrap">
+            <button class="copy-btn" onclick="copyCode('code-mcp', this)">Copy</button>
+            <pre id="code-mcp">{
+  "mcpServers": {
+    "context-slicer": {
+      "command": "node",
+      "args": ["src/mcp.js"],
+      "env": {
+        "CONTEXT_SLICER_DB": ".context-slicer-slices.json"
+      }
+    }
+  }
+}</pre>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-proxy">
+          <p style="color: var(--muted); margin-bottom: 12px; font-size: 0.92rem;">
+            Run locally with Node.js or deploy <code>worker.js</code> to Cloudflare Workers (free tier, no credit card):
+          </p>
+          <div class="code-wrap">
+            <button class="copy-btn" onclick="copyCode('code-proxy', this)">Copy</button>
+            <pre id="code-proxy"># Start local OpenAI-compatible streaming proxy
+npm start
+
+# Test with curl (returns X-Context-Saved header)
+curl -N http://localhost:8787/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -H "X-Session-Id: sprint-42" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "stream": true,
+    "messages": [{"role": "user", "content": "build it"}]
+  }'</pre>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-sdk">
+          <p style="color: var(--muted); margin-bottom: 12px; font-size: 0.92rem;">
+            Embed the zero-dependency CommonJS SDK directly in your Node.js app:
+          </p>
+          <div class="code-wrap">
+            <button class="copy-btn" onclick="copyCode('code-sdk', this)">Copy</button>
+            <pre id="code-sdk">const { ContextSlicer } = require('./src/core');
+
+const slicer = new ContextSlicer({ windowSize: 6 });
+slicer.addTurn('user', 'Let us build a URL shortener <spec cat="goal">Build fast URL shortener</spec>');
+slicer.addTurn('assistant', 'Agreed. <spec cat="decisions">Use SQLite + Node http</spec>');
+
+// Chat mode: [WORKING_MEMORY] + recalled + last N turns + userMsg
+const chatPayload = slicer.buildMessages('What database did we pick?');
+
+// Execute mode: drops brainstorm window, sends ONLY [WORKING_MEMORY] + userMsg
+const buildPayload = slicer.buildMessages('build it');</pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>ContextSlicer · Non-destructive context filtering (MCP · Proxy · SDK)</span>
+      <span>MIT License · Zero Dependencies</span>
+    </footer>
+  </div>
+
+  <script>
+    function selectTab(name) {
+      document.querySelectorAll('.tab-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.tab === name);
+      });
+      document.querySelectorAll('.tab-panel').forEach((panel) => {
+        panel.classList.toggle('active', panel.id === 'tab-' + name);
+      });
+    }
+
+    function setScenario(mode) {
+      const isExec = mode === 'execute';
+      document.getElementById('btn-chat').classList.toggle('active', !isExec);
+      document.getElementById('btn-execute').classList.toggle('active', isExec);
+
+      if (isExec) {
+        document.getElementById('scenario-title').textContent = 'Execute Mode ("build it")';
+        document.getElementById('scenario-sub').textContent = 'Brainstorm window dropped — sends only [WORKING_MEMORY] + userMsg.';
+        document.getElementById('before-tokens').textContent = '12,480 tok';
+        document.getElementById('after-tokens').textContent = '460 tok';
+        document.getElementById('after-label').textContent = 'AFTER (96% Saved)';
+        document.getElementById('after-bar').style.width = '4%';
+        document.getElementById('after-preview').textContent =
+`[WORKING_MEMORY]
+Goal: Zero-dep ContextSlicer
+Decisions: CommonJS | SSE passthrough | JSON store
+Constraints: 0 npm deps | Non-destructive archive
+Rejected: Deleting user chat history
+[/WORKING_MEMORY]
++ user: "build it"`;
+      } else {
+        document.getElementById('scenario-title').textContent = 'Chat Mode (Brainstorming)';
+        document.getElementById('scenario-sub').textContent = 'Sends [WORKING_MEMORY] + keyword-recalled turns + last N turns + userMsg.';
+        document.getElementById('before-tokens').textContent = '12,480 tok';
+        document.getElementById('after-tokens').textContent = '2,890 tok';
+        document.getElementById('after-label').textContent = 'AFTER (77% Saved)';
+        document.getElementById('after-bar').style.width = '23%';
+        document.getElementById('after-preview').textContent =
+`[WORKING_MEMORY] ... [/WORKING_MEMORY]
++ 2 keyword-recalled earlier turns
++ last 6 recent turns
++ user: "How should we handle CORS headers?"`;
+      }
+    }
+
+    function copyCode(id, btn) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = orig; }, 1200);
+      });
+    }
+  </script>
+</body>
+</html>

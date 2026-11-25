@@ -1,0 +1,29 @@
+{
+  "name": "context-slicer",
+  "version": "1.0.0",
+  "description": "Non-destructive context filtering for AI chats — never deletes chat messages, only filters what the AI sees.",
+  "main": "src/core.js",
+  "bin": {
+    "context-slicer": "./bin/cli.js"
+  },
+  "scripts": {
+    "start": "node bin/cli.js serve",
+    "mcp": "node src/mcp.js",
+    "test": "node test/test.js"
+  },
+  "keywords": [
+    "ai",
+    "llm",
+    "context",
+    "tokens",
+    "openai",
+    "proxy",
+    "mcp",
+    "cloudflare-worker",
+    "zero-dependency"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

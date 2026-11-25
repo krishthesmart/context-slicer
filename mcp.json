@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "context-slicer": {
+      "command": "node",
+      "args": [
+        "./src/mcp.js"
+      ],
+      "env": {
+        "CONTEXT_SLICER_DB": "./.context-slicer-slices.json"
+      }
+    }
+  }
+}
